@@ -32,6 +32,7 @@ Target Platform: EK-TM4C123GXL Evaluation Board
 //-----------------------------------------------------------------------------
 #include <stdint.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include "tm4c123gh6pm.h"
 #include "clock.h"
 #include "gpio.h"
@@ -49,11 +50,20 @@ Target Platform: EK-TM4C123GXL Evaluation Board
 // External methods
 //-----------------------------------------------------------------------------
 
+// Terminal interface methods
 extern void initTerminal();
 extern char getcUart0();
 extern void getsUart0(USER_DATA* data);
 extern void parseFields(USER_DATA* data);
-//extern void isCommand(USER_DATA* data, const char strCommand[], uint8_t minArguments);
+extern bool isCommand(USER_DATA* data, const char strCommand[], uint8_t minArguments);
+extern int32_t getFieldInteger(USER_DATA* data, uint8_t fieldNumber);
+extern char* getFieldString(USER_DATA* data, uint8_t fieldNumber);
+
+// Measuremtns methods
+extern void initMeasure();
+extern uint32_t getResistance();
+extern void groundPins();
+
 
 //-----------------------------------------------------------------------------
 // Main
@@ -65,6 +75,7 @@ int main(void)
     initTerminal();
     initUart0();
     setUart0BaudRate(115200, 40e6);
+    initMeasure();
 
 
     USER_DATA data;
@@ -83,21 +94,21 @@ int main(void)
         putsUart0("\t\r\n\n>");                        // Clear line and new line for next cmd
         getsUart0(&data);                        // Get string from user
         parseFields(&data);                      // Parse the fields from user input
-
+        char *cmd = getFieldString(&data, 0);
 
         //-----------------------------------------------------------------------------
         // COMMANDS FOR USER
         //-----------------------------------------------------------------------------
 
         // "clear": clear the terminal screen
-        if(isCommand(&data, "clear", 0))
+        if(strCompare(cmd, "clear"))
         {
             clearScreen();
             valid2 = true;
         }
 
         // "help": list available commands and their functions
-        if(isCommand(&data, "help", 0))
+        if(strCompare(cmd,"help"))
         {
             putsUart0("Showing list of available terminal commands:\t\r\n");
             putsUart0("--------------------------------------------\t\r\n\n");
@@ -119,6 +130,19 @@ int main(void)
             valid2 = true;
         }
 
+        if(strCompare(cmd, "resistor"))
+        {
+            putsUart0("\t\r\nMeasuring Resistance...");
+            uint32_t resistor = getResistance();
+            char buffer[150];
+
+            putsUart0("\t\r\nResistor: ");
+            sprintf(buffer,"%d",resistor);
+            putsUart0(buffer);
+            putsUart0(" ohms");
+
+            valid2 = true;
+        }
 
 
 

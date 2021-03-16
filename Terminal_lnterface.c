@@ -92,7 +92,7 @@ void initTerminal()
     selectPinPushPullOutput(RED_LED);
     selectPinPushPullOutput(BLUE_LED);
 
-    setPinValue(GREEN_LED,1);
+    //setPinValue(GREEN_LED,1);
 }
 
 
@@ -315,11 +315,15 @@ int32_t getFieldInteger(USER_DATA* data, uint8_t fieldNumber)
 // Return True if the command matches the first field and the number of arguments (excluding the command field) is greater than or equal to the requested number of minimum arguments
 bool isCommand(USER_DATA* data, const char strCommand[], uint8_t minArguments)
 {
-    //   command from structure compared to command passed--------field count - initial command >= min arguments passed
 
+    // check for first letter of cmd and min arguemnts
     if( (data->buffer[data->fieldPosition[0]] == *strCommand) && ((data->fieldCount)-1 >= minArguments) )
     {
-        return true;
+        // check for second letter of cmd
+        if(data->buffer[data->fieldPosition[1]] == *strCommand)
+        {
+            return true;
+        }
     }
     else
     {
