@@ -28,8 +28,8 @@
 #define AC PORTC,7 //PC7 AC
 
 
-
-void initMeasure()
+// Inits the pins for measuring
+void initMeasurement()
 {
     // Enable clocks
     enablePort(PORTA);
@@ -60,28 +60,26 @@ void initMeasure()
 
     // Config Wide Timer 0
     SYSCTL_RCGCWTIMER_R |= SYSCTL_RCGCWTIMER_R0;                // turn-on timer
-    WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;   // turn-off counter before reconfiguring
+    WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;   // turn off counter before reconfiguring
     WTIMER0_CFG_R = 4;                   // configure as 32-bit counter (A only)
     WTIMER0_TAMR_R = TIMER_TAMR_TACMR | TIMER_TAMR_TAMR_CAP | TIMER_TAMR_TACDIR; // configure for edge time mode, count up
     WTIMER0_CTL_R = TIMER_CTL_TAEVENT_POS; // measure time from positive edge to positive edge
 
-    WTIMER0_TAV_R = 0;                          // zero counter for first period
+    WTIMER0_TAV_R = 0;          // zero counter for first period
     WTIMER0_TBV_R = 0;
 
-    SYSCTL_RCGCACMP_R |= 1;                     // enable clocks
+    SYSCTL_RCGCACMP_R |= 1;     // enable clocks
 
-    /* (starts on page 1220)
-     5. Configure the internal voltage reference to 1.65 V by writing the ACREFCTL register with the
-     value 0x0000.030C.
-     */
-    COMP_ACREFCTL_R |= 0xF | (1 << 9) | (0 << 8); //(0<<8) RNG=0, (1<<9) = EN, 0xF = 2.469
-    COMP_ACCTL0_R |= (2 << 9) | (1 << 1); //ASRCP && (1<<1) CINV we want to invert
+    COMP_ACREFCTL_R |= 0xF | (1 << 9) | (0 << 8);    // Vdda = 3.3V, EN = 1, RNG = 0, Vref = 0xF --> gives the 2.469V
 
+    COMP_ACCTL0_R |= (2 << 9) | (1 << 1);            // ASRCP = 0x2 (Internal voltage reference = 2.469 from above),
+                                                     // CINV = 1 (Comparator is inverted)
     //wait 10us as stated in data sheet
     waitMicrosecond(10);
 
 }
 
+// Grounds all pins used in hardware
 void groundPins()
 {
     setPinValue(BLUE_LED, 0);
@@ -89,23 +87,24 @@ void groundPins()
     setPinValue(LOWSIDE, 0);
     setPinValue(MEASURE_LR, 0);
     setPinValue(MEASURE_C, 0);
-//    setPinValue(ADC, 0);
-//    setPinValue(AC, 0);
     setPinValue(INTEGRATE, 0);
     setPinValue(HIGHSIDE, 0);
+//    setPinValue(ADC, 0);
+//    setPinValue(AC, 0);
+
 }
 
-
+// Gets resistance and returns the value
 uint32_t getResistance()
 {
-    groundPins();                   // ground all pins first
+    groundPins();                           // ground all pins first
     setPinValue(INTEGRATE, 1);
-    setPinValue(LOWSIDE, 1);        // discharge, ground both sides of capacitor
-    waitMicrosecond(10e5);          // wait a reasonable time
+    setPinValue(LOWSIDE, 1);                // discharge
+    waitMicrosecond(10e5);                  // wait for discharge
 
-    WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;        // disable timer
+    WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;       // disable timer
 
-    // reset TAV and TBV
+    // Reset TAV and TBV
     WTIMER0_TAV_R = 0;
     WTIMER0_TBV_R = 0;
 
@@ -116,16 +115,12 @@ uint32_t getResistance()
     //  Turn on timer
     WTIMER0_CTL_R |= TIMER_CTL_TAEN;
 
-    //stay blocking when it is not tripped - same thing as & with 2
-    while (!(COMP_ACSTAT0_R & (1 << 1))); //this is in page 1226, status register
+    // Do not commence until voltage reaches reference of 2.469V
+    while (!(COMP_ACSTAT0_R & (1 << 1)));      // OVAL = 1 (VIN- < VIN+), with VIN- = charge and VIN+ = 2.469V
 
-    //make sure it is not counting
-    WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;
-
-    //disable pins once more before returning
-    groundPins();
-    //do some math and divide to get accurate resistance and then return value
-    return (WTIMER0_TAV_R/57);
+    WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
+    groundPins();                              // Ground pins
+    return ((WTIMER0_TAV_R/57)+1);                 // Divide timer value with 57 to get Resistance value and return
 }
 
 

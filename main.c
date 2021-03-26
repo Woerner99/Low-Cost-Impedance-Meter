@@ -60,7 +60,7 @@ extern int32_t getFieldInteger(USER_DATA* data, uint8_t fieldNumber);
 extern char* getFieldString(USER_DATA* data, uint8_t fieldNumber);
 
 // Measuremtns methods
-extern void initMeasure();
+extern void initMeasurement();
 extern uint32_t getResistance();
 extern void groundPins();
 
@@ -75,17 +75,12 @@ int main(void)
     initTerminal();
     initUart0();
     setUart0BaudRate(115200, 40e6);
-    initMeasure();
+    initMeasurement();
 
 
     USER_DATA data;
 
-    putsUart0("=======================================================\t\r\n");
-    putsUart0("Low Cost Impedance Meter\t\r\n");
-    putsUart0("Author: Sean-Michael Woerner\t\r\n");
-    putsUart0("=======================================================\t\r\n");
-    putsUart0("for more information type 'help'\t\r\n");
-
+    printMenu();            // print main menu on startup
 
     while(true)
     {
@@ -104,46 +99,41 @@ int main(void)
         if(strCompare(cmd, "clear"))
         {
             clearScreen();
+            clearBuffer(&data);
             valid2 = true;
         }
 
         // "help": list available commands and their functions
         if(strCompare(cmd,"help"))
         {
-            putsUart0("Showing list of available terminal commands:\t\r\n");
-            putsUart0("--------------------------------------------\t\r\n\n");
-            putsUart0("Debug Commands:\t\r\n");
-            putsUart0("---------------\t\r\n");
-            putsUart0("(1)reset-------------Resets the hardware\t\r\n");
-            putsUart0("(2)voltage-----------Returns the voltage across DUT2-DUT1. (The voltage is limited to 0 to 3.3V)\t\r\n");
-            putsUart0("\t\r\n");
-            putsUart0("LCR Commands:\t\r\n");
-            putsUart0("-------------\t\r\n");
-            putsUart0("(1)resistor----------Returns the resistance of the DUT\t\r\n");
-            putsUart0("(2)capacitance-------Returns the capacitance of the DUT\t\r\n");
-            putsUart0("(3)inductance--------Returns the inductance of the DUT\t\r\n");
-            putsUart0("(4)esr---------------Returns the ESR of the inductor under test\t\r\n");
-            putsUart0("(5)auto--------------Returns the value of the DUT that is most predominant\t\r\n");
-
-
-
+            printHelp();
+            clearBuffer(&data);
             valid2 = true;
         }
 
         if(strCompare(cmd, "resistor"))
         {
             putsUart0("\t\r\nMeasuring Resistance...");
+            putsUart0("\t\r\n-----------------------\t\r\n");
             uint32_t resistor = getResistance();
             char buffer[150];
 
-            putsUart0("\t\r\nResistor: ");
+            putsUart0("Resistor: ");
             sprintf(buffer,"%d",resistor);
             putsUart0(buffer);
             putsUart0(" ohms");
 
+            clearBuffer(&data);
             valid2 = true;
         }
 
+        if(strCompare(cmd, "reset"))
+        {
+            putsUart0("\t\r\nRebooting System ...\t\r\n");
+            waitMicrosecond(200000);
+            reboot();
+            clearBuffer(&data);
+        }
 
 
     }
