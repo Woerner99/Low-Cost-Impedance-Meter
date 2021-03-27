@@ -62,6 +62,7 @@ extern char* getFieldString(USER_DATA* data, uint8_t fieldNumber);
 // Measuremtns methods
 extern void initMeasurement();
 extern uint32_t getResistance();
+extern uint32_t getCapacitance();
 extern void groundPins();
 
 
@@ -95,6 +96,12 @@ int main(void)
         // COMMANDS FOR USER
         //-----------------------------------------------------------------------------
 
+        if(strCompare(cmd, "test"))
+        {
+            testHighside();
+            clearBuffer(&data);
+        }
+
         // "clear": clear the terminal screen
         if(strCompare(cmd, "clear"))
         {
@@ -111,23 +118,39 @@ int main(void)
             valid2 = true;
         }
 
-        if(strCompare(cmd, "resistor"))
+        if(strCompare(cmd, "capacitance") || strCompare(cmd, "cap"))
+        {
+            putsUart0("\t\r\nMeasuring Capacitance...");
+            putsUart0("\t\r\n-----------------------\t\r\n");
+            uint32_t cap = getCapacitance();
+            char cap_str[150];
+
+            putsUart0("Capacitor: ");
+            sprintf(cap_str, "%d", cap);
+            putsUart0(cap_str);
+            putsUart0(" micro farads");
+
+            clearBuffer(&data);
+            valid2 = true;
+        }
+
+        if(strCompare(cmd, "resistor") || strCompare(cmd, "res"))
         {
             putsUart0("\t\r\nMeasuring Resistance...");
             putsUart0("\t\r\n-----------------------\t\r\n");
             uint32_t resistor = getResistance();
-            char buffer[150];
+            char res_str[150];
 
             putsUart0("Resistor: ");
-            sprintf(buffer,"%d",resistor);
-            putsUart0(buffer);
+            sprintf(res_str,"%d",resistor);
+            putsUart0(res_str);
             putsUart0(" ohms");
 
             clearBuffer(&data);
             valid2 = true;
         }
 
-        if(strCompare(cmd, "reset"))
+        if(strCompare(cmd, "reset") || strCompare(cmd, "reboot"))
         {
             putsUart0("\t\r\nRebooting System ...\t\r\n");
             waitMicrosecond(200000);

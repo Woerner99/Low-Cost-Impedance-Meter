@@ -27,6 +27,8 @@
 #define ADC PORTE,4 //analog PE4 ADC
 #define AC PORTC,7 //PC7 AC
 
+#define VREF 2.469*57
+#define CAP_CONS 0.000000186
 
 // Inits the pins for measuring
 void initMeasurement()
@@ -93,6 +95,14 @@ void groundPins()
 //    setPinValue(AC, 0);
 
 }
+void testHighside()
+{
+    groundPins();
+    setPinValue(HIGHSIDE, 1);
+
+    waitMicrosecond(10e6);
+    setPinValue(HIGHSIDE, 0);
+}
 
 // Gets resistance and returns the value
 uint32_t getResistance()
@@ -106,7 +116,7 @@ uint32_t getResistance()
 
     // Reset TAV and TBV
     WTIMER0_TAV_R = 0;
-    WTIMER0_TBV_R = 0;
+
 
     // Turn on pins to measure resistance
     setPinValue(LOWSIDE, 0);
@@ -120,9 +130,43 @@ uint32_t getResistance()
 
     WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
     groundPins();                              // Ground pins
-    return ((WTIMER0_TAV_R/57)+1);                 // Divide timer value with 57 to get Resistance value and return
+    return ((WTIMER0_TAV_R/57)+1);             // Divide timer value with 57 to get Resistance value and return
 }
 
+// Gets Capacitance and returns value
+uint32_t getCapacitance()
+{
+    groundPins();
+    //setPinValue(INTEGRATE, 1);
+    setPinValue(MEASURE_C, 1);
+    setPinValue(LOWSIDE, 1);                 // discharge
+    waitMicrosecond(10e5);                   // wait for discharge
+
+    WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;        // disable timer
+
+    // Reset TAV
+    WTIMER0_TAV_R = 0;
+
+    // Turn on timer
+    WTIMER0_CTL_R |= TIMER_CTL_TAEN;
+
+    // Turn on pins to measure capacitance
+    setPinValue(LOWSIDE, 0);
+    setPinValue(HIGHSIDE, 1);
+
+    // Do not commence until voltage reaches reference of 2.469V
+   // while (!(COMP_ACSTAT0_R & (1 << 1)));      // OVAL = 1 (VIN- < VIN+), with VIN- = charge and VIN+ = 2.469V
+    while ((COMP_ACSTAT0_R == 0x00));
+
+    WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
+    groundPins();                              // Ground pins
+
+    uint32_t test = (WTIMER0_TAV_R);
+
+    return ((WTIMER0_TAV_R*CAP_CONS));             // Divide timer value with 57 to get Resistance value and return
+
+
+}
 
 void testBoard()
 {
