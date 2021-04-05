@@ -134,6 +134,22 @@ int main(void)
             valid2 = true;
         }
 
+        if(strCompare(cmd, "esr"))
+        {
+              putsUart0("\t\r\nMeasuring ESR...");
+              putsUart0("\t\r\n-----------------------\t\r\n");
+              double esr = getESR();
+              char esr_str[150];
+
+              putsUart0("ESR: ");
+              sprintf(esr_str, "%f", esr);
+              putsUart0(esr_str);
+              putsUart0(" ohms");
+
+              clearBuffer(&data);
+              valid2 = true;
+        }
+
         if(strCompare(cmd, "resistor") || strCompare(cmd, "res"))
         {
             putsUart0("\t\r\nMeasuring Resistance...");

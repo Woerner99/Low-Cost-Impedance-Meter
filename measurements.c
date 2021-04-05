@@ -11,6 +11,8 @@
 //-----------------------------------------------------------------------------
 // Device includes, defines, and assembler directives
 //-----------------------------------------------------------------------------
+#include <stdint.h>
+#include "adc0.h"
 #include "measurements.h"
 #include "gpio.h"
 #include "wait.h"
@@ -29,6 +31,7 @@
 
 #define VREF 2.469*57
 #define CAP_CONS 0.000000186
+#define AIN9_MASK 2
 
 // Inits the pins for measuring
 void initMeasurement()
@@ -53,12 +56,13 @@ void initMeasurement()
     selectPinPushPullOutput(HIGHSIDE);
     selectPinPushPullOutput(LOWSIDE);
 
-    // Init ADC
+    // Init ADC pin PE4
     selectPinAnalogInput(ADC);
+    initAdc0();
+    setAdc0Ss3Mux(9);
 
     // Init AC (Analog Comparator)
     selectPinAnalogInput(AC);
-
 
     // Config Wide Timer 0
     SYSCTL_RCGCWTIMER_R |= SYSCTL_RCGCWTIMER_R0;                // turn-on timer
@@ -68,15 +72,13 @@ void initMeasurement()
     WTIMER0_CTL_R = TIMER_CTL_TAEVENT_POS; // measure time from positive edge to positive edge
 
     WTIMER0_TAV_R = 0;          // zero counter for first period
-    WTIMER0_TBV_R = 0;
 
     SYSCTL_RCGCACMP_R |= 1;     // enable clocks
 
     COMP_ACREFCTL_R |= 0xF | (1 << 9) | (0 << 8);    // Vdda = 3.3V, EN = 1, RNG = 0, Vref = 0xF --> gives the 2.469V
-
     COMP_ACCTL0_R |= (2 << 9) | (1 << 1);            // ASRCP = 0x2 (Internal voltage reference = 2.469 from above),
                                                      // CINV = 1 (Comparator is inverted)
-    //wait 10us as stated in data sheet
+    // Wait 10us as stated in the data sheet
     waitMicrosecond(10);
 
 }
@@ -102,6 +104,14 @@ void testHighside()
 
     waitMicrosecond(10e6);
     setPinValue(HIGHSIDE, 0);
+}
+
+// Gets Voltage from DUT2 pin on PE4
+double getVoltage()
+{
+    uint32_t raw = readAdc0Ss3();
+    double voltage = ((raw)/(4096.0*3.3));
+    return voltage;
 }
 
 // Gets resistance and returns the value
@@ -165,6 +175,25 @@ uint32_t getCapacitance()
 
     return ((WTIMER0_TAV_R*CAP_CONS));             // Divide timer value with 57 to get Resistance value and return
 
+
+}
+
+// Gets ESR and returns voltage
+double getESR()
+{
+    groundPins();
+    setPinValue(MEASURE_LR, 1);
+    setPinValue(LOWSIDE, 1);        // discharge
+    waitMicrosecond(10e5);          // wait for discharge
+
+    double voltage = getVoltage();    // get raw voltage on PE4
+    groundPins();                   // ground pins
+
+    // Calculate the voltage using voltage divider law:
+    double ohms;
+    ohms = (33*(3.3-voltage))/(voltage);
+
+    return ohms;
 
 }
 
