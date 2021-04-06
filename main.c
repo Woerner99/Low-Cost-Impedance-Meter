@@ -64,6 +64,7 @@ extern void initMeasurement();
 extern uint32_t getResistance();
 extern uint32_t getCapacitance();
 extern double getESR();
+extern uint32_t getInductance();
 extern void groundPins();
 
 
@@ -123,7 +124,7 @@ int main(void)
             putsUart0("Capacitor: ");
             sprintf(cap_str, "%d", cap);
             putsUart0(cap_str);
-            putsUart0(" micro farads");
+            putsUart0(" micro Farads");
 
             clearBuffer(&data);
             valid2 = true;
@@ -141,6 +142,22 @@ int main(void)
               sprintf(esr_str, "%f", esr);
               putsUart0(esr_str);
               putsUart0(" ohms");
+
+              clearBuffer(&data);
+              valid2 = true;
+        }
+
+        if(strCompare(cmd, "inductance") || strCompare(cmd, "in"))
+        {
+              putsUart0("\t\r\nMeasuring Inductance...");
+              putsUart0("\t\r\n-----------------------\t\r\n");
+              uint32_t inductance = getInductance();
+              char ind_str[150];
+
+              putsUart0("Inductance: ");
+              sprintf(ind_str, "%d", inductance);
+              putsUart0(ind_str);
+              putsUart0(" micro Henries");
 
               clearBuffer(&data);
               valid2 = true;

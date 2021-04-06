@@ -30,7 +30,7 @@
 #define ADC PORTE,4 //analog PE4 ADC
 #define AC PORTC,7 //PC7 AC
 
-#define VREF 2.469*57
+#define V_REF 2.469
 #define CAP_CONS 0.000000186
 #define AIN9_MASK 2
 
@@ -115,16 +115,13 @@ uint32_t getResistance()
 
     WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;       // disable timer
 
-    // Reset TAV and TBV
-    WTIMER0_TAV_R = 0;
-
+    WTIMER0_TAV_R = 0;                        // Reset TAV
 
     // Turn on pins to measure resistance
     setPinValue(LOWSIDE, 0);
     setPinValue(MEASURE_LR, 1);
 
-    //  Turn on timer
-    WTIMER0_CTL_R |= TIMER_CTL_TAEN;
+    WTIMER0_CTL_R |= TIMER_CTL_TAEN;            //  Turn on timer
 
     // Do not commence until voltage reaches reference of 2.469V
     while (COMP_ACSTAT0_R == 0x00);
@@ -144,11 +141,9 @@ uint32_t getCapacitance()
 
     WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;        // disable timer
 
-    // Reset TAV
-    WTIMER0_TAV_R = 0;
+    WTIMER0_TAV_R = 0;                       // Reset TAV
 
-    // Turn on timer
-    WTIMER0_CTL_R |= TIMER_CTL_TAEN;
+    WTIMER0_CTL_R |= TIMER_CTL_TAEN;         // Turn on Timer
 
     // Turn on pins to measure capacitance
     setPinValue(LOWSIDE, 0);
@@ -158,10 +153,9 @@ uint32_t getCapacitance()
     while (COMP_ACSTAT0_R == 0x00);
 
     WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
+    uint32_t test = WTIMER0_TAV_R;
     groundPins();                              // Ground pins
-    return ((WTIMER0_TAV_R*CAP_CONS));             // Divide timer value with 57 to get Resistance value and return
-
-
+    return ((WTIMER0_TAV_R*CAP_CONS));         // Multiply timer value with capacitor constant and return
 }
 
 // Gets ESR and returns value
@@ -169,17 +163,60 @@ double getESR()
 {
     groundPins();
     setPinValue(MEASURE_LR, 1);
-    setPinValue(LOWSIDE, 1);        // discharge
-    waitMicrosecond(10e5);          // wait for discharge
+    setPinValue(LOWSIDE, 1);         // discharge
+    waitMicrosecond(10e5);           // wait for discharge
 
-    float voltage = 0.0;
-    voltage = getVoltage();    // get raw voltage on PE4
+    double voltage = 0.0;
+    voltage = getVoltage();          // get raw voltage on PE4
 
     // Calculate the ohms using voltage divider law:
     double ohms = 0.0;
     ohms = ((3.3*33.0 - voltage*33.0)/voltage);
+    groundPins();
     return ohms;
-
 }
+
+// Gets Inductance and returns value
+uint32_t getInductance()
+{
+    double t = 0.0;                 // time constant
+    double r_in = 0.0;              // Rin = ESR + 33 ohms
+    double esr = getESR();          // esr
+    double i = 0.0;                 // current
+    double inductance = 0.0;        // inductance (which will be returned)
+
+    groundPins();
+    setPinValue(MEASURE_C, 1);
+    setPinValue(LOWSIDE, 1);        // discharge
+    waitMicrosecond(10e5);          // wait for discharge
+
+    setPinValue(MEASURE_C, 0);
+
+    WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Disable Timer
+    WTIMER0_TAV_R = 0;                        // Reset TAV
+
+    WTIMER0_CTL_R |= TIMER_CTL_TAEN;        // Turn on timer
+
+    setPinValue(MEASURE_LR, 1);              // Turn on pin to measure inductance
+
+    // Do not commence until voltage reaches reference of 2.469V
+    while (COMP_ACSTAT0_R == 0x00);
+
+    WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
+
+    t = ((double) (WTIMER0_TAV_R)) / (40000000);    // time constant = timer value / sys clock
+    r_in = esr + 33.0;                              // Rin value
+    i = V_REF / r_in;                               // 2.469V / Rin to get current
+
+    inductance =  -(r_in * t) / (log(1- (r_in * i) / 3.3));
+
+    groundPins();
+    return (double) (inductance*1e6);
+}
+
+
+
+
+
 
 
