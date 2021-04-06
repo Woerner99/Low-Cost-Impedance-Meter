@@ -63,6 +63,7 @@ extern char* getFieldString(USER_DATA* data, uint8_t fieldNumber);
 extern void initMeasurement();
 extern uint32_t getResistance();
 extern uint32_t getCapacitance();
+extern double getESR();
 extern void groundPins();
 
 
@@ -138,7 +139,8 @@ int main(void)
         {
               putsUart0("\t\r\nMeasuring ESR...");
               putsUart0("\t\r\n-----------------------\t\r\n");
-              double esr = getESR();
+              double esr = 0.0;
+              esr = getESR();
               char esr_str[150];
 
               putsUart0("ESR: ");

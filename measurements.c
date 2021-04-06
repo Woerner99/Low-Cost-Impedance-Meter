@@ -12,6 +12,7 @@
 // Device includes, defines, and assembler directives
 //-----------------------------------------------------------------------------
 #include <stdint.h>
+#include <math.h>
 #include "adc0.h"
 #include "measurements.h"
 #include "gpio.h"
@@ -32,6 +33,9 @@
 #define VREF 2.469*57
 #define CAP_CONS 0.000000186
 #define AIN9_MASK 2
+
+
+float V_DUT2 = 0.0;
 
 // Inits the pins for measuring
 void initMeasurement()
@@ -59,7 +63,8 @@ void initMeasurement()
     // Init ADC pin PE4
     selectPinAnalogInput(ADC);
     initAdc0();
-    setAdc0Ss3Mux(9);
+    //setAdc0Ss3Mux(9);
+    //setAdc0Ss3Log2AverageCount(2);
 
     // Init AC (Analog Comparator)
     selectPinAnalogInput(AC);
@@ -93,9 +98,6 @@ void groundPins()
     setPinValue(MEASURE_C, 0);
     setPinValue(INTEGRATE, 0);
     setPinValue(HIGHSIDE, 0);
-//    setPinValue(ADC, 0);
-//    setPinValue(AC, 0);
-
 }
 void testHighside()
 {
@@ -107,11 +109,13 @@ void testHighside()
 }
 
 // Gets Voltage from DUT2 pin on PE4
-double getVoltage()
+float getVoltage()
 {
     uint32_t raw = readAdc0Ss3();
-    double voltage = ((raw)/(4096.0*3.3));
-    return voltage;
+    //float voltage = 0.0;
+    V_DUT2 = (raw /4096.0)*3.3;
+    //return voltage;
+    return V_DUT2;
 }
 
 // Gets resistance and returns the value
@@ -186,114 +190,14 @@ double getESR()
     setPinValue(LOWSIDE, 1);        // discharge
     waitMicrosecond(10e5);          // wait for discharge
 
-    double voltage = getVoltage();    // get raw voltage on PE4
-    groundPins();                   // ground pins
+    float voltage = 0.0;
+    voltage = getVoltage();    // get raw voltage on PE4
 
-    // Calculate the voltage using voltage divider law:
-    double ohms;
-    ohms = (33*(3.3-voltage))/(voltage);
 
+    // Calculate the ohms using voltage divider law:
+    double ohms = 0.0;
+    ohms = ((3.3*33.0 - voltage*33.0)/voltage);
     return ohms;
-
-}
-
-void testBoard()
-{
-    //RIGHT SIDE
-
-    //MEASURE_LR =0, MEASURE_C = 0
-    setPinValue(BLUE_LED, 1);
-
-    setPinValue(MEASURE_LR, 0);
-    setPinValue(MEASURE_C, 0);
-    waitMicrosecond(1e6);
-    //expected output = floating (.9V~1.1V)
-    setPinValue(BLUE_LED, 0);
-    setPinValue(RED_LED, 1);
-    waitMicrosecond(1e6);
-    groundPins();
-
-    //MEASURE_LR =1, MEASURE_C = 0, DUT1 ~ 3.2+V (logical high)
-    setPinValue(BLUE_LED, 1);
-    setPinValue(MEASURE_LR, 1);
-    setPinValue(MEASURE_C, 0);
-    waitMicrosecond(1e6);
-    setPinValue(BLUE_LED, 0);
-    setPinValue(RED_LED, 1);
-    groundPins();
-    waitMicrosecond(1e6);
-
-    //MEASURE_LR =0, MEASURE_C = 1, output ~ .02V (logical low)
-    setPinValue(BLUE_LED, 1);
-    setPinValue(MEASURE_LR, 0);
-    setPinValue(MEASURE_C, 1);
-    waitMicrosecond(1e6);
-    setPinValue(BLUE_LED, 0);
-    setPinValue(RED_LED, 1);
-    groundPins();
-    waitMicrosecond(1e6);
-
-    //RIGHT SIDE BOARD
-
-    //Highside = 0, Lowside = 0, Integrate=0, output = floating (.9V~1.1V)
-    setPinValue(BLUE_LED, 1);
-    setPinValue(LOWSIDE, 0);
-    setPinValue(HIGHSIDE, 0);
-    setPinValue(INTEGRATE, 0);
-    waitMicrosecond(1e6);
-    setPinValue(BLUE_LED, 0);
-    setPinValue(RED_LED, 1);
-    groundPins();
-    waitMicrosecond(1e6);
-
-    //Highside = 1, Lowside = 0, Integrate=0, output ~3V-3.15V
-    setPinValue(BLUE_LED, 1);
-    setPinValue(LOWSIDE, 0);
-    setPinValue(HIGHSIDE, 1);
-    setPinValue(INTEGRATE, 0);
-    waitMicrosecond(1e6);
-    setPinValue(BLUE_LED, 0);
-    setPinValue(RED_LED, 1);
-    groundPins();
-    waitMicrosecond(1e6);
-
-    //Highside = 0, Lowside = 1, Integrate=0, output (.2V) logical low
-    setPinValue(BLUE_LED, 1);
-    setPinValue(LOWSIDE, 1);
-    setPinValue(HIGHSIDE, 0);
-    setPinValue(INTEGRATE, 0);
-    waitMicrosecond(1e6);
-    setPinValue(BLUE_LED, 0);
-    setPinValue(RED_LED, 1);
-    groundPins();
-    waitMicrosecond(1e6);
-
-    //Highside = 1, Lowside = 1, Integrate=0, output = (.15-.25V)
-    setPinValue(BLUE_LED, 1);
-    setPinValue(LOWSIDE, 1);
-    setPinValue(HIGHSIDE, 1);
-    setPinValue(INTEGRATE, 0);
-    waitMicrosecond(1e6);
-    setPinValue(BLUE_LED, 0);
-    setPinValue(RED_LED, 1);
-    groundPins();
-    waitMicrosecond(1e6);
-
-    //Highside = 1, Lowside = 0, Integrate=1, output = (3-3.15V)
-    setPinValue(BLUE_LED, 1);
-    setPinValue(LOWSIDE, 0);
-    setPinValue(HIGHSIDE, 1);
-    setPinValue(INTEGRATE, 1);
-    waitMicrosecond(1e6);
-    setPinValue(BLUE_LED, 0);
-    setPinValue(RED_LED, 1);
-    groundPins();
-    waitMicrosecond(1e6);
-
-    //dump the capacitor
-    setPinValue(INTEGRATE, 1);
-    setPinValue(LOWSIDE, 1); //discharge //ground both sides of capacitor
-    waitMicrosecond(10e3); //wait a reasonable time
 
 }
 
