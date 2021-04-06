@@ -16,9 +16,12 @@
 #ifndef MEASURMENTS_H_
 #define MEASURMENTS_H_
 
-void initMeasure();
-uint32_t measureResistance();
-void disablePins();
-void testBoard();
+void initMeasurement();
+void groundPins();
+float getVoltage();
+uint32_t getResistance();
+uint32_t getCapacitance();
+double getESR();
+
 
 #endif /* MEASURMENTS_H_ */

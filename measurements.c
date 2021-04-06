@@ -34,9 +34,6 @@
 #define CAP_CONS 0.000000186
 #define AIN9_MASK 2
 
-
-float V_DUT2 = 0.0;
-
 // Inits the pins for measuring
 void initMeasurement()
 {
@@ -63,7 +60,7 @@ void initMeasurement()
     // Init ADC pin PE4
     selectPinAnalogInput(ADC);
     initAdc0();
-    //setAdc0Ss3Mux(9);
+    setAdc0Ss3Mux(9);
     //setAdc0Ss3Log2AverageCount(2);
 
     // Init AC (Analog Comparator)
@@ -85,7 +82,6 @@ void initMeasurement()
                                                      // CINV = 1 (Comparator is inverted)
     // Wait 10us as stated in the data sheet
     waitMicrosecond(10);
-
 }
 
 // Grounds all pins used in hardware
@@ -99,23 +95,14 @@ void groundPins()
     setPinValue(INTEGRATE, 0);
     setPinValue(HIGHSIDE, 0);
 }
-void testHighside()
-{
-    groundPins();
-    setPinValue(HIGHSIDE, 1);
-
-    waitMicrosecond(10e6);
-    setPinValue(HIGHSIDE, 0);
-}
 
 // Gets Voltage from DUT2 pin on PE4
 float getVoltage()
 {
     uint32_t raw = readAdc0Ss3();
-    //float voltage = 0.0;
-    V_DUT2 = (raw /4096.0)*3.3;
-    //return voltage;
-    return V_DUT2;
+    float voltage = 0.0;
+    voltage = (raw /4096.0)*3.3;
+    return voltage;
 }
 
 // Gets resistance and returns the value
@@ -140,7 +127,7 @@ uint32_t getResistance()
     WTIMER0_CTL_R |= TIMER_CTL_TAEN;
 
     // Do not commence until voltage reaches reference of 2.469V
-    while (!(COMP_ACSTAT0_R & (1 << 1)));      // OVAL = 1 (VIN- < VIN+), with VIN- = charge and VIN+ = 2.469V
+    while (COMP_ACSTAT0_R == 0x00);
 
     WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
     groundPins();                              // Ground pins
@@ -151,7 +138,6 @@ uint32_t getResistance()
 uint32_t getCapacitance()
 {
     groundPins();
-    //setPinValue(INTEGRATE, 1);
     setPinValue(MEASURE_C, 1);
     setPinValue(LOWSIDE, 1);                 // discharge
     waitMicrosecond(10e5);                   // wait for discharge
@@ -169,20 +155,16 @@ uint32_t getCapacitance()
     setPinValue(HIGHSIDE, 1);
 
     // Do not commence until voltage reaches reference of 2.469V
-   // while (!(COMP_ACSTAT0_R & (1 << 1)));      // OVAL = 1 (VIN- < VIN+), with VIN- = charge and VIN+ = 2.469V
-    while ((COMP_ACSTAT0_R == 0x00));
+    while (COMP_ACSTAT0_R == 0x00);
 
     WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
     groundPins();                              // Ground pins
-
-    uint32_t test = (WTIMER0_TAV_R);
-
     return ((WTIMER0_TAV_R*CAP_CONS));             // Divide timer value with 57 to get Resistance value and return
 
 
 }
 
-// Gets ESR and returns voltage
+// Gets ESR and returns value
 double getESR()
 {
     groundPins();
@@ -192,7 +174,6 @@ double getESR()
 
     float voltage = 0.0;
     voltage = getVoltage();    // get raw voltage on PE4
-
 
     // Calculate the ohms using voltage divider law:
     double ohms = 0.0;

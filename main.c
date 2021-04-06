@@ -59,7 +59,7 @@ extern bool isCommand(USER_DATA* data, const char strCommand[], uint8_t minArgum
 extern int32_t getFieldInteger(USER_DATA* data, uint8_t fieldNumber);
 extern char* getFieldString(USER_DATA* data, uint8_t fieldNumber);
 
-// Measuremtns methods
+// Measurement methods
 extern void initMeasurement();
 extern uint32_t getResistance();
 extern uint32_t getCapacitance();
@@ -96,12 +96,6 @@ int main(void)
         //-----------------------------------------------------------------------------
         // COMMANDS FOR USER
         //-----------------------------------------------------------------------------
-
-        if(strCompare(cmd, "test"))
-        {
-            testHighside();
-            clearBuffer(&data);
-        }
 
         // "clear": clear the terminal screen
         if(strCompare(cmd, "clear"))
