@@ -1,3 +1,15 @@
+/*
+* project.h
+*
+* Sean-Michael Woerner
+* 1001229459
+*
+* 3/15/2021
+*
+*
+* Header file to be used directly with main.c
+* Contains functions such as printing and terminal interface helping funcitons
+*/
 #ifndef __PROJECT__H
 #define __PROJECT__H
 

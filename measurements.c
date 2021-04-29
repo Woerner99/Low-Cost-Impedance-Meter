@@ -34,6 +34,24 @@
 #define CAP_CONS 0.000000186
 #define AIN9_MASK 2
 
+
+void test_thing()
+{
+    groundPins();
+
+    /*
+    setPinValue(MEASURE_LR,0);
+    setPinValue(MEASURE_C,1);
+    */
+
+
+    setPinValue(HIGHSIDE,1);
+    setPinValue(LOWSIDE,0);
+    setPinValue(INTEGRATE,1);
+
+}
+
+
 // Inits the pins for measuring
 void initMeasurement()
 {
@@ -150,7 +168,17 @@ uint32_t getCapacitance()
     setPinValue(HIGHSIDE, 1);
 
     // Do not commence until voltage reaches reference of 2.469V
-    while (COMP_ACSTAT0_R == 0x00);
+    while (COMP_ACSTAT0_R == 0x00)
+    {
+        // if timer goes on too long break out (breaks @ approx 150 micro)
+        if(WTIMER0_TAV_R > 0x31ABA855)
+        {
+            putsUart0("took too long\t\r\n");
+            WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
+            groundPins();
+            return(123);
+        }
+    }
 
     WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
     uint32_t test = WTIMER0_TAV_R;
@@ -200,7 +228,18 @@ uint32_t getInductance()
     setPinValue(MEASURE_LR, 1);              // Turn on pin to measure inductance
 
     // Do not commence until voltage reaches reference of 2.469V
-    while (COMP_ACSTAT0_R == 0x00);
+      while (COMP_ACSTAT0_R == 0x00)
+      {
+          // if timer goes on too long break out (breaks @ approx 150 micro)
+          if(WTIMER0_TAV_R > 0x31ABA855)
+          {
+              putsUart0("took too long\t\r\n");
+              WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
+              groundPins();
+              return(456);
+          }
+      }
+
 
     WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
 
@@ -214,9 +253,45 @@ uint32_t getInductance()
     return (double) (inductance*1e6);
 }
 
+// Function to get measurement automatically. This function will determine if the connected component is
+// either a Resistor, Capacitor, or an Inductor
+void auto_measure()
+{
+    uint32_t res = getResistance();
+    uint32_t cap = getCapacitance(); // 123 = NOT CAP value
+    uint32_t ind = getInductance(); //  456 = NOT IND value
 
+    // if NOT cap and NOT ind, print resistance
+    if(cap == 123 && ind == 456)
+    {
+        char res_str[20];
+        putsUart0("Resistor: ");
+        sprintf(res_str,"%d",res);
+        putsUart0(res_str);
+        putsUart0(" ohms");
+        return;
+    }
+    // print cap
+    if(ind > 200 && res < 10)
+    {
+        char cap_str[20];
+        putsUart0("Capacitor: ");
+        sprintf(cap_str, "%d", cap);
+        putsUart0(cap_str);
+        putsUart0(" micro Farads");
+        return;
+    }
+    // print ind
+    if(cap == 123 && res < 100)
+    {
+        char ind_str[150];
+        putsUart0("Inductance: ");
+        sprintf(ind_str, "%d", ind);
+        putsUart0(ind_str);
+        putsUart0(" micro Henries");
+        return;
+    }
 
-
-
+}
 
 

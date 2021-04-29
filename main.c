@@ -65,7 +65,11 @@ extern uint32_t getResistance();
 extern uint32_t getCapacitance();
 extern double getESR();
 extern uint32_t getInductance();
+extern float getVoltage();
+extern void auto_measure();
 extern void groundPins();
+
+
 
 
 //-----------------------------------------------------------------------------
@@ -79,7 +83,6 @@ int main(void)
     initUart0();
     setUart0BaudRate(115200, 40e6);
     initMeasurement();
-
 
     USER_DATA data;
 
@@ -97,6 +100,14 @@ int main(void)
         //-----------------------------------------------------------------------------
         // COMMANDS FOR USER
         //-----------------------------------------------------------------------------
+
+        if(strCompare(cmd, "auto"))
+        {
+            putsUart0("\t\r\nDetecting Component Automatically...");
+            putsUart0("\t\r\n-----------------------\t\r\n");
+            auto_measure();
+
+        }
 
         // "clear": clear the terminal screen
         if(strCompare(cmd, "clear"))
@@ -184,6 +195,21 @@ int main(void)
             putsUart0("\t\r\nRebooting System ...\t\r\n");
             waitMicrosecond(200000);
             reboot();
+            clearBuffer(&data);
+        }
+
+        if(strCompare(cmd, "voltage"))
+        {
+            putsUart0("\t\r\nMeasuring Voltage...");
+            putsUart0("\t\r\n--------------------\t\r\n");
+            float voltage = getVoltage();
+            char volt_str[150];
+
+            putsUart0("Voltage: ");
+            sprintf(volt_str,"%f",voltage);
+            putsUart0(volt_str);
+            putsUart0(" V");
+
             clearBuffer(&data);
         }
 
