@@ -104,7 +104,7 @@ int main(void)
         if(strCompare(cmd, "auto"))
         {
             putsUart0("\t\r\nDetecting Component Automatically...");
-            putsUart0("\t\r\n-----------------------\t\r\n");
+            putsUart0("\t\r\n------------------------------------\t\r\n");
             auto_measure();
 
         }

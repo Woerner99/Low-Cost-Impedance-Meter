@@ -34,6 +34,9 @@
 #define CAP_CONS 0.000000186
 #define AIN9_MASK 2
 
+#define NOT_CAP 0xCBAD
+#define NOT_IND 0xFBAD
+
 
 void test_thing()
 {
@@ -173,10 +176,10 @@ uint32_t getCapacitance()
         // if timer goes on too long break out (breaks @ approx 150 micro)
         if(WTIMER0_TAV_R > 0x31ABA855)
         {
-            putsUart0("took too long\t\r\n");
+            putsUart0("capacitor took too long\t\r\n");
             WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
             groundPins();
-            return(123);
+            return(NOT_CAP);
         }
     }
 
@@ -233,10 +236,10 @@ uint32_t getInductance()
           // if timer goes on too long break out (breaks @ approx 150 micro)
           if(WTIMER0_TAV_R > 0x31ABA855)
           {
-              putsUart0("took too long\t\r\n");
+              putsUart0("inductor took too long\t\r\n");
               WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
               groundPins();
-              return(456);
+              return(NOT_IND);
           }
       }
 
@@ -258,11 +261,11 @@ uint32_t getInductance()
 void auto_measure()
 {
     uint32_t res = getResistance();
-    uint32_t cap = getCapacitance(); // 123 = NOT CAP value
-    uint32_t ind = getInductance(); //  456 = NOT IND value
+    uint32_t cap = getCapacitance(); // 0xCBAD = NOT CAP value
+    uint32_t ind = getInductance(); //  0xFBAD = NOT IND value
 
     // if NOT cap and NOT ind, print resistance
-    if(cap == 123 && ind == 456)
+    if(cap == NOT_CAP && ind == NOT_IND)
     {
         char res_str[20];
         putsUart0("Resistor: ");
@@ -282,7 +285,7 @@ void auto_measure()
         return;
     }
     // print ind
-    if(cap == 123 && res < 100)
+    if(cap == NOT_CAP && res < 100)
     {
         char ind_str[150];
         putsUart0("Inductance: ");
