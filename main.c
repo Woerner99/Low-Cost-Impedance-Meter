@@ -36,7 +36,9 @@ Target Platform: EK-TM4C123GXL Evaluation Board
 #include "tm4c123gh6pm.h"
 #include "clock.h"
 #include "gpio.h"
+#include "measurements.h"
 #include "project.h"
+#include "pushbuttons.h"
 #include "spi0.h"
 #include "uart0.h"
 #include "wait.h"
@@ -44,6 +46,7 @@ Target Platform: EK-TM4C123GXL Evaluation Board
 #define RED_LED PORTF,1
 #define BLUE_LED PORTF,2
 #define GREEN_LED PORTF,3
+
 
 
 //-----------------------------------------------------------------------------
@@ -69,6 +72,8 @@ extern float getVoltage();
 extern void auto_measure();
 extern void groundPins();
 
+// Pushbutton methods
+extern void initPushButtons();
 
 
 
@@ -83,6 +88,7 @@ int main(void)
     initUart0();
     setUart0BaudRate(115200, 40e6);
     initMeasurement();
+    initPushButtons();
 
     USER_DATA data;
 
@@ -100,6 +106,7 @@ int main(void)
         //-----------------------------------------------------------------------------
         // COMMANDS FOR USER
         //-----------------------------------------------------------------------------
+
 
         if(strCompare(cmd, "auto"))
         {
@@ -174,7 +181,7 @@ int main(void)
               valid2 = true;
         }
 
-        if(strCompare(cmd, "resistor") || strCompare(cmd, "res"))
+        if(strCompare(cmd, "resistor") || strCompare(cmd, "res") )
         {
             putsUart0("\t\r\nMeasuring Resistance...");
             putsUart0("\t\r\n-----------------------\t\r\n");

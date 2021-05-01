@@ -13,10 +13,12 @@
 //-----------------------------------------------------------------------------
 #include <stdint.h>
 #include <math.h>
+#include <stdio.h>
 #include "adc0.h"
 #include "measurements.h"
 #include "gpio.h"
 #include "wait.h"
+#include "uart0.h"
 
 #define BLUE_LED PORTF,2
 #define RED_LED PORTF,1
@@ -29,6 +31,8 @@
 
 #define ADC PORTE,4 //analog PE4 ADC
 #define AC PORTC,7 //PC7 AC
+
+
 
 #define V_REF 2.469
 #define CAP_CONS 0.000000186

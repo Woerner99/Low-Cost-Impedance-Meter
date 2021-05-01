@@ -61,6 +61,9 @@ void selectPinInterruptLowLevel(PORT port, uint8_t pin);
 void enablePinInterrupt(PORT port, uint8_t pin);
 void disablePinInterrupt(PORT port, uint8_t pin);
 
+// ADDED BY ME
+void clearPinInterrupt(PORT port, uint8_t pin);
+
 void setPinValue(PORT port, uint8_t pin, bool value);
 bool getPinValue(PORT port, uint8_t pin);
 void setPortValue(PORT port, uint8_t value);

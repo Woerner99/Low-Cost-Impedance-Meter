@@ -4,26 +4,27 @@
  *  Sean-Michael Woerner
  *  1001229459
  *
- *  3/15/2021
+ *  5/1/2021
  */
 
 //-----------------------------------------------------------------------------
 // Device includes, defines, and assembler directives
 //-----------------------------------------------------------------------------
 #include "tm4c123gh6pm.h"
+#include "gpio.h"
 #include <stdint.h>
 
-#ifndef MEASURMENTS_H_
-#define MEASURMENTS_H_
+#ifndef PUSHBUTTONS_H_
+#define PUSHBUTTONS_H_
 
 
 
-void initMeasurement();
-void groundPins();
-float getVoltage();
-uint32_t getResistance();
-uint32_t getCapacitance();
-double getESR();
+#define RES_BUTTON PORTB,0  // Pushbutton for Resistance
+
+#define RES_MASK 1
 
 
-#endif /* MEASURMENTS_H_ */
+
+
+
+#endif /* PUSHBUTTONS_H_ */

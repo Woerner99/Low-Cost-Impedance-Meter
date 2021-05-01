@@ -26,6 +26,7 @@
 #define OFS_DATA_TO_IBE    3*4*8
 #define OFS_DATA_TO_IEV    4*4*8
 #define OFS_DATA_TO_IM     5*4*8
+#define OFS_DATA_TO_ICR    8*4*8
 #define OFS_DATA_TO_AFSEL  9*4*8
 #define OFS_DATA_TO_ODR   68*4*8
 #define OFS_DATA_TO_PUR   69*4*8
@@ -291,6 +292,14 @@ void disablePinInterrupt(PORT port, uint8_t pin)
     uint32_t* p;
     p = (uint32_t*)port + pin + OFS_DATA_TO_IM;
     *p = 0;
+}
+
+// I ADDED THIS FUNCTION
+void clearPinInterrupt(PORT port, uint8_t pin)
+{
+    uint32_t* p;
+    p = (uint32_t*)port + pin + OFS_DATA_TO_ICR;
+    *p = 1;
 }
 
 void setPinValue(PORT port, uint8_t pin, bool value)
