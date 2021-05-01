@@ -51,6 +51,15 @@ void printHelp()
     putsUart0("-------------\t\r\n");
     putsUart0("(1)clear-------------Clears terminal screen\t\r\n");
     putsUart0("(2)help--------------Shows list of available commands\t\r\n");
+    putsUart0("\t\r\n");
+    putsUart0("Push Buttons: \t\r\n");
+    putsUart0("-------------\t\r\n");
+    putsUart0("(1)measure resistance\t\r\n");
+    putsUart0("(2)measure capacitance\t\r\n");
+    putsUart0("(3)measure inductance\t\r\n");
+    putsUart0("(4)measure esr\t\r\n");
+    putsUart0("(5)measure auto\t\r\n");
+    putsUart0("(6)measure voltage\t\r\n");
 
 }
 

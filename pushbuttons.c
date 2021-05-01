@@ -16,15 +16,18 @@
 #include <stdio.h>
 #include "gpio.h"
 #include "pushbuttons.h"
+#include "measurements.h"
 #include "wait.h"
 #include "uart0.h"
 
-#define RES_BUTTON            PORTB,0  // Pushbutton for Resistance
-#define CAP_BUTTON            PORTB,1  // Pushbutton for Capacitance
-#define IND_BUTTON            PORTB,2  // Pushbutton for Inductance
-#define ESR_BUTTON            PORTB,3  // Pushbutton for ESR
-#define AUTO_BUTTON           PORTB,4  // Pushbutton for Auto
-#define VOLTAGE_BUTTON        PORTB,5  // Pushbutton for Voltage
+#define RES_BUTTON           PORTB,5  // Pushbutton for Resistance
+#define CAP_BUTTON           PORTB,0  // Pushbutton for Capacitance
+#define IND_BUTTON           PORTB,1  // Pushbutton for Inductance
+
+#define ESR_BUTTON           PORTB,2  // Pushbutton for ESR
+#define AUTO_BUTTON          PORTB,7  // Pushbutton for Auto
+#define VOLTAGE_BUTTON       PORTB,6  // Pushbutton for Voltage
+
 
 
 // Function to initialize push buttons on PORT B
@@ -72,27 +75,53 @@ void onButtonPress()
 {
     if(!getPinValue(RES_BUTTON))
     {
-        putsUart0("PB0\t\r\n");
+        putsUart0("PB5\t\r\n");
     }
     if(!getPinValue(CAP_BUTTON))
     {
-         putsUart0("PB1\t\r\n");
+         putsUart0("PB0\t\r\n");
+         putsUart0("\t\r\nMeasuring Capacitance...");
+         putsUart0("\t\r\n-----------------------\t\r\n");
+         uint32_t cap = getCapacitance();
+
+         // if capacitor out of range or took too long don't print value
+         if(cap != 0xCBAD)
+         {
+             char cap_str[150];
+             putsUart0("Capacitor: ");
+             sprintf(cap_str, "%d", cap);
+             putsUart0(cap_str);
+             putsUart0(" micro Farads");
+         }
     }
     if(!getPinValue(IND_BUTTON))
     {
-        putsUart0("PB2\t\r\n");
+        putsUart0("PB1\t\r\n");
+        putsUart0("\t\r\nMeasuring Inductance...");
+        putsUart0("\t\r\n-----------------------\t\r\n");
+        uint32_t inductance = getInductance();
+
+        // if inductor out of range or took too long don't print value
+        if(inductance != 0xFBAD)
+        {
+            char ind_str[150];
+            putsUart0("Inductance: ");
+            sprintf(ind_str, "%d", inductance);
+            putsUart0(ind_str);
+            putsUart0(" micro Henries");
+        }
     }
     if(!getPinValue(ESR_BUTTON))
     {
-         putsUart0("PB3\t\r\n");
+         putsUart0("PB2\t\r\n");
     }
     if(!getPinValue(AUTO_BUTTON))
     {
-        putsUart0("PB4\t\r\n");
+        putsUart0("PB7\t\r\n");
     }
     if(!getPinValue(VOLTAGE_BUTTON))
     {
-         putsUart0("PB5\t\r\n");
+         putsUart0("PB6\t\r\n");
     }
 
 
@@ -111,7 +140,6 @@ void onButtonPress()
     clearPinInterrupt(VOLTAGE_BUTTON);
     disablePinInterrupt(VOLTAGE_BUTTON);
 
-    putsUart0("Button Pressed!\t\r\n");
     waitMicrosecond(250000);
 
     clearPinInterrupt(RES_BUTTON);

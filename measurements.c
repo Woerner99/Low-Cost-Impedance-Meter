@@ -149,7 +149,17 @@ uint32_t getResistance()
     WTIMER0_CTL_R |= TIMER_CTL_TAEN;            //  Turn on timer
 
     // Do not commence until voltage reaches reference of 2.469V
-    while (COMP_ACSTAT0_R == 0x00);
+    while (COMP_ACSTAT0_R == 0x00)
+    {
+        // if timer goes on too long break out
+          if(WTIMER0_TAV_R > 0x31ABA855)
+          {
+              putsUart0("resistor took too long\t\r\n");
+              WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
+              groundPins();
+              return(0);
+          }
+    }
 
     WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
     groundPins();                              // Ground pins

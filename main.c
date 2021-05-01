@@ -137,13 +137,16 @@ int main(void)
             putsUart0("\t\r\nMeasuring Capacitance...");
             putsUart0("\t\r\n-----------------------\t\r\n");
             uint32_t cap = getCapacitance();
-            char cap_str[150];
 
-            putsUart0("Capacitor: ");
-            sprintf(cap_str, "%d", cap);
-            putsUart0(cap_str);
-            putsUart0(" micro Farads");
-
+            // if capacitor out of range or took too long don't print value
+            if(cap != 0xCBAD)
+            {
+                char cap_str[150];
+                putsUart0("Capacitor: ");
+                sprintf(cap_str, "%d", cap);
+                putsUart0(cap_str);
+                putsUart0(" micro Farads");
+            }
             clearBuffer(&data);
             valid2 = true;
         }
@@ -170,13 +173,16 @@ int main(void)
               putsUart0("\t\r\nMeasuring Inductance...");
               putsUart0("\t\r\n-----------------------\t\r\n");
               uint32_t inductance = getInductance();
-              char ind_str[150];
 
-              putsUart0("Inductance: ");
-              sprintf(ind_str, "%d", inductance);
-              putsUart0(ind_str);
-              putsUart0(" micro Henries");
-
+              // if inductor out of range or took too long don't print value
+              if(inductance != 0xFBAD)
+              {
+                  char ind_str[150];
+                  putsUart0("Inductance: ");
+                  sprintf(ind_str, "%d", inductance);
+                  putsUart0(ind_str);
+                  putsUart0(" micro Henries");
+              }
               clearBuffer(&data);
               valid2 = true;
         }
