@@ -18,13 +18,7 @@
 #define PUSHBUTTONS_H_
 
 
-
-#define RES_BUTTON PORTB,0  // Pushbutton for Resistance
-
-#define RES_MASK 1
-
-
-
-
+void initPushButtons();
+void onButtonPress();
 
 #endif /* PUSHBUTTONS_H_ */
