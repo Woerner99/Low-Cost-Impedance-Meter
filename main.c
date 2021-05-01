@@ -62,19 +62,6 @@ extern bool isCommand(USER_DATA* data, const char strCommand[], uint8_t minArgum
 extern int32_t getFieldInteger(USER_DATA* data, uint8_t fieldNumber);
 extern char* getFieldString(USER_DATA* data, uint8_t fieldNumber);
 
-// Measurement methods
-extern void initMeasurement();
-extern uint32_t getResistance();
-extern uint32_t getCapacitance();
-extern double getESR();
-extern uint32_t getInductance();
-extern float getVoltage();
-extern void auto_measure();
-extern void groundPins();
-
-// Pushbutton methods
-extern void initPushButtons();
-
 
 
 //-----------------------------------------------------------------------------

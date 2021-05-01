@@ -24,9 +24,9 @@
 #define CAP_BUTTON           PORTB,0  // Pushbutton for Capacitance
 #define IND_BUTTON           PORTB,1  // Pushbutton for Inductance
 
-#define ESR_BUTTON           PORTB,2  // Pushbutton for ESR
+#define ESR_BUTTON           PORTB,6  // Pushbutton for ESR
 #define AUTO_BUTTON          PORTB,7  // Pushbutton for Auto
-#define VOLTAGE_BUTTON       PORTB,6  // Pushbutton for Voltage
+#define VOLTAGE_BUTTON       PORTB,2  // Pushbutton for Voltage
 
 
 
@@ -75,11 +75,21 @@ void onButtonPress()
 {
     if(!getPinValue(RES_BUTTON))
     {
-        putsUart0("PB5\t\r\n");
+        //putsUart0("PB5\t\r\n");
+        putsUart0("\t\r\nMeasuring Resistance...");
+        putsUart0("\t\r\n-----------------------\t\r\n");
+        uint32_t resistor = getResistance();
+        char res_str[150];
+
+        putsUart0("Resistor: ");
+        sprintf(res_str,"%d",resistor);
+        putsUart0(res_str);
+        putsUart0(" ohms");
+
     }
     if(!getPinValue(CAP_BUTTON))
     {
-         putsUart0("PB0\t\r\n");
+         //putsUart0("PB0\t\r\n");
          putsUart0("\t\r\nMeasuring Capacitance...");
          putsUart0("\t\r\n-----------------------\t\r\n");
          uint32_t cap = getCapacitance();
@@ -96,7 +106,7 @@ void onButtonPress()
     }
     if(!getPinValue(IND_BUTTON))
     {
-        putsUart0("PB1\t\r\n");
+        //putsUart0("PB1\t\r\n");
         putsUart0("\t\r\nMeasuring Inductance...");
         putsUart0("\t\r\n-----------------------\t\r\n");
         uint32_t inductance = getInductance();
@@ -113,19 +123,41 @@ void onButtonPress()
     }
     if(!getPinValue(ESR_BUTTON))
     {
-         putsUart0("PB2\t\r\n");
+         //putsUart0("PB2\t\r\n");
+          putsUart0("\t\r\nMeasuring ESR...");
+          putsUart0("\t\r\n-----------------------\t\r\n");
+          double esr = 0.0;
+          esr = getESR();
+          char esr_str[150];
+
+          putsUart0("ESR: ");
+          sprintf(esr_str, "%f", esr);
+          putsUart0(esr_str);
+          putsUart0(" ohms");
     }
     if(!getPinValue(AUTO_BUTTON))
     {
-        putsUart0("PB7\t\r\n");
+        //putsUart0("PB7\t\r\n");
+        putsUart0("\t\r\nDetecting Component Automatically...");
+        putsUart0("\t\r\n------------------------------------\t\r\n");
+        auto_measure();
     }
     if(!getPinValue(VOLTAGE_BUTTON))
     {
-         putsUart0("PB6\t\r\n");
+         //putsUart0("PB6\t\r\n");
+        putsUart0("\t\r\nMeasuring Voltage...");
+        putsUart0("\t\r\n--------------------\t\r\n");
+        float voltage = getVoltage();
+        char volt_str[150];
+
+        putsUart0("Voltage: ");
+        sprintf(volt_str,"%f",voltage);
+        putsUart0(volt_str);
+        putsUart0(" V");
     }
 
 
-
+    // Clear interrupts and turn off, wait, and then turn back on
 
     clearPinInterrupt(RES_BUTTON);
     disablePinInterrupt(RES_BUTTON);
@@ -154,4 +186,6 @@ void onButtonPress()
     enablePinInterrupt(AUTO_BUTTON);
     clearPinInterrupt(VOLTAGE_BUTTON);
     enablePinInterrupt(VOLTAGE_BUTTON);
+
+    putsUart0("\t\r\n\n>");                        // Clear line and new line for next cmd
 }

@@ -17,13 +17,15 @@
 #define MEASURMENTS_H_
 
 
-
+void test_thing();
 void initMeasurement();
 void groundPins();
 float getVoltage();
 uint32_t getResistance();
 uint32_t getCapacitance();
+uint32_t getInductance();
 double getESR();
+void auto_measure();
 
 
 #endif /* MEASURMENTS_H_ */
