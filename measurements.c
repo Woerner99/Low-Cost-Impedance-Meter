@@ -265,6 +265,23 @@ uint32_t getInductance()
     i = V_REF / r_in;                               // 2.469V / Rin to get current
 
     inductance =  -(r_in * t) / (log(1- (r_in * i) / 3.3));
+    float ind;
+
+
+    // Smaller value checks for accuracy:
+    if(inductance < 0.0001 && inductance > 0.0000504)
+    {
+        ind = inductance/2;
+        groundPins();
+        return (double) (ind*1e6);
+    }
+    // If under 25 uH or so, divide again
+    if(inductance < 0.0000504)
+    {
+        ind = inductance/4;
+        groundPins();
+        return (double) (ind*1e6);
+    }
 
     groundPins();
     return (double) (inductance*1e6);
