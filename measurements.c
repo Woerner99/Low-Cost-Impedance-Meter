@@ -163,7 +163,37 @@ uint32_t getResistance()
 
     WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
     groundPins();                              // Ground pins
-    return ((WTIMER0_TAV_R/57)+1);             // Divide timer value with 57 to get Resistance value and return
+
+    uint32_t res = (WTIMER0_TAV_R/57) + 1;
+
+    // If resistor is small, divide by 2
+    if (res < 30 && res > 10)
+    {
+        res = res/2;
+
+        setPinValue(LOWSIDE, 1);                  // Discharge again
+        waitMicrosecond(10e5);                    // wait
+        groundPins();
+        return res;
+    }
+
+    // If resistor is between 100k and 400k, take off 3k
+    if (res > 100000 && res < 400000)
+    {
+        res = res - 3000;
+
+        setPinValue(LOWSIDE, 1);                  // Discharge again
+        waitMicrosecond(10e5);                    // wait
+        groundPins();
+        return res;
+    }
+
+
+   //return ((WTIMER0_TAV_R/57)+1);           // Divide timer value with 57 to get Resistance value and return
+    setPinValue(LOWSIDE, 1);                  // Discharge again
+    waitMicrosecond(10e5);                    // wait
+    groundPins();
+    return res;
 }
 
 // Gets Capacitance and returns value
@@ -193,13 +223,22 @@ uint32_t getCapacitance()
             putsUart0("capacitor took too long\t\r\n");
             WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
             groundPins();
+
+            setPinValue(LOWSIDE, 1);                  // Discharge again
+            waitMicrosecond(10e5);                    // wait
+
+            groundPins();
             return(NOT_CAP);
         }
     }
 
     WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;          // Turn off counter
-    uint32_t test = WTIMER0_TAV_R;
     groundPins();                              // Ground pins
+
+    setPinValue(LOWSIDE, 1);                  // Discharge again
+    waitMicrosecond(10e5);                    // wait
+
+    groundPins();
     return ((WTIMER0_TAV_R*CAP_CONS));         // Multiply timer value with capacitor constant and return
 }
 
@@ -269,14 +308,14 @@ uint32_t getInductance()
 
 
     // Smaller value checks for accuracy:
-    if(inductance < 0.0001 && inductance > 0.0000504)
+    if(inductance < 0.0001 && inductance >= 0.00005035)
     {
         ind = inductance/2;
         groundPins();
         return (double) (ind*1e6);
     }
     // If under 25 uH or so, divide again
-    if(inductance < 0.0000504)
+    if(inductance < 0.00005035)
     {
         ind = inductance/4;
         groundPins();
@@ -291,9 +330,11 @@ uint32_t getInductance()
 // either a Resistor, Capacitor, or an Inductor
 void auto_measure()
 {
-    uint32_t res = getResistance();
-    uint32_t cap = getCapacitance(); // 0xCBAD = NOT CAP value
-    uint32_t ind = getInductance(); //  0xFBAD = NOT IND value
+    uint32_t res = getResistance();   // 0 = NOT RES value
+    waitMicrosecond(100000);          // put some delay to avoid interference
+    uint32_t cap = getCapacitance();  // 0xCBAD = NOT CAP value
+    waitMicrosecond(100000);          // put some delay to avoid interference
+    uint32_t ind = getInductance();   //  0xFBAD = NOT IND value
 
     // if NOT cap and NOT ind, print resistance
     if(cap == NOT_CAP && ind == NOT_IND)
