@@ -109,6 +109,14 @@ void initMeasurement()
     waitMicrosecond(10);
 }
 
+void discharge()
+{
+    setPinValue(LOWSIDE, 1);                 // discharge
+    setPinValue(INTEGRATE, 1);
+    waitMicrosecond(3000000);                   // wait for discharge
+    setPinValue(LOWSIDE, 0);
+    setPinValue(INTEGRATE, 0);
+}
 // Grounds all pins used in hardware
 void groundPins()
 {
@@ -200,19 +208,20 @@ uint32_t getResistance()
 uint32_t getCapacitance()
 {
     groundPins();
-    setPinValue(MEASURE_C, 1);
-    setPinValue(LOWSIDE, 1);                 // discharge
+    //setPinValue(LOWSIDE, 1);                 // discharge
     waitMicrosecond(10e5);                   // wait for discharge
 
     WTIMER0_CTL_R &= ~TIMER_CTL_TAEN;        // disable timer
 
     WTIMER0_TAV_R = 0;                       // Reset TAV
-
+    setPinValue(MEASURE_C, 1);
+    setPinValue(LOWSIDE, 0);
+    setPinValue(HIGHSIDE, 1);
     WTIMER0_CTL_R |= TIMER_CTL_TAEN;         // Turn on Timer
 
     // Turn on pins to measure capacitance
-    setPinValue(LOWSIDE, 0);
-    setPinValue(HIGHSIDE, 1);
+
+
 
     // Do not commence until voltage reaches reference of 2.469V
     while (COMP_ACSTAT0_R == 0x00)

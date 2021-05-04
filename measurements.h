@@ -26,6 +26,6 @@ uint32_t getCapacitance();
 uint32_t getInductance();
 double getESR();
 void auto_measure();
-
+void discharge();
 
 #endif /* MEASURMENTS_H_ */

@@ -94,6 +94,14 @@ int main(void)
         // COMMANDS FOR USER
         //-----------------------------------------------------------------------------
 
+        /*
+        if(strCompare(cmd, "dis"))
+        {
+            putsUart0("\t\r\nDischarging...\t\r\n");
+            putsUart0("--------------------\t\r\n");
+            discharge();
+        }
+        */
 
         if(strCompare(cmd, "auto"))
         {
