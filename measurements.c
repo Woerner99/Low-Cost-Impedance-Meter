@@ -39,7 +39,9 @@
 #define AIN9_MASK 2
 
 #define NOT_CAP 0xCBAD
+#define SMALL_CAP 0xCC00
 #define NOT_IND 0xFBAD
+
 
 
 void test_thing()
@@ -246,6 +248,16 @@ uint32_t getCapacitance()
 
     setPinValue(LOWSIDE, 1);                  // Discharge again
     waitMicrosecond(10e5);                    // wait
+
+    float test = WTIMER0_TAV_R * CAP_CONS;
+
+    // If Capacitor is really small return SMALL_CAP
+    if((WTIMER0_TAV_R*CAP_CONS) < 0.00004)
+    {
+        groundPins();
+        return(SMALL_CAP);
+    }
+
 
     groundPins();
     return ((WTIMER0_TAV_R*CAP_CONS));         // Multiply timer value with capacitor constant and return

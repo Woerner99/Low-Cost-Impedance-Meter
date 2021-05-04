@@ -134,13 +134,18 @@ int main(void)
             uint32_t cap = getCapacitance();
 
             // if capacitor out of range or took too long don't print value
-            if(cap != 0xCBAD)
+            if(cap != 0xCBAD && cap != 0xCC00)
             {
                 char cap_str[150];
                 putsUart0("Capacitor: ");
                 sprintf(cap_str, "%d", cap);
                 putsUart0(cap_str);
                 putsUart0(" micro Farads");
+            }
+            if(cap == 0xCC00)
+            {
+                putsUart0("Capacitor: ");
+                putsUart0(" 0.01 micro Farads");
             }
             clearBuffer(&data);
             valid2 = true;
